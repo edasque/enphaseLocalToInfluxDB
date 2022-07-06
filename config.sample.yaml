@@ -1,0 +1,15 @@
+debug: false
+enphase:
+  EnphaseEnvoySerial: 202206100000
+  EnphaseUser: ENLIGHTEN_USER
+  EnphasePassword: ENLIGHTEN_PASSWORD
+  EnphaseSite: MYSITE
+  EnvoyHost: https://10.0.0.190
+  expires_in: 86399
+influxdb:
+  db: telegraf
+  host: http://10.0.0.213:8086
+  password: influxdbpassword
+  periodInMinutes: 1
+  user: telegraf
+
