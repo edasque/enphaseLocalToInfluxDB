@@ -1,3 +1,5 @@
 config.yaml
-sample data/*
+sample data/
 enphaseLocalToInflux.*
+.DS_Store
+.vscode/
