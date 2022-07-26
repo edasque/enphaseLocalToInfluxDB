@@ -648,14 +648,14 @@ func initInfluxDB() influxclient.Client {
 	return influxDBcnx
 }
 
-func scheduleInserts(myCookies cookiejar.Jar) {
+func scheduleInserts(myJWTtoken string) {
 
 	period := time.Duration(config.Int("influxdb.periodInMinutes"))
 	ticker := time.NewTicker(period * time.Minute)
 
 	senseToken := authSense()
 
-	loadDataAndWriteToInfluxDB(myCookies)
+	loadEnphaseDataAndWriteItToInfluxDB(myJWTtoken)
 
 	if senseToken == "" {
 		log.Println("No Sense token, not getting Sense data")
@@ -671,7 +671,7 @@ func scheduleInserts(myCookies cookiejar.Jar) {
 
 	for range ticker.C {
 
-		loadDataAndWriteToInfluxDB(myCookies)
+		loadEnphaseDataAndWriteItToInfluxDB(myJWTtoken)
 
 		if config.Bool("sense.enabled") && senseToken != "" {
 			senseData := loadSenseData(senseToken)
@@ -764,9 +764,9 @@ func loadSenseData(senseToken string) *SenseTrends {
 
 }
 
-func loadDataAndWriteToInfluxDB(myCookies cookiejar.Jar) {
+func loadEnphaseDataAndWriteItToInfluxDB(myJWTtoken string) {
 	log.Println("Retrieving Enphase Production data, from local endpoint")
-	enphaseData := loadProductionDetailsData(myCookies)
+	enphaseData := loadProductionDetailsData(myJWTtoken)
 
 	for _, data := range enphaseData.Production {
 
@@ -815,7 +815,7 @@ func loadDataAndWriteToInfluxDB(myCookies cookiejar.Jar) {
 	}
 
 	log.Println("Retrieving Enphase Inverter data, from local endpoint")
-	invertersData := loadInverterData(myCookies)
+	invertersData := loadInverterData(myJWTtoken)
 
 	totalInverters := 0
 	for _, data_inverter := range invertersData {
@@ -899,17 +899,16 @@ func loadJWTIntoCookie(jwt string) (cookiejar.Jar, error) {
 
 	return *jar, nil
 }
-func loadProductionDetailsData(authedCookieJar cookiejar.Jar) enphaseMetrics {
+func loadProductionDetailsData(myJWTtoken string) enphaseMetrics {
 	// /production.json?details=1
 	tr := &http.Transport{
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 	}
-	client := &http.Client{Transport: tr,
-		Jar: &authedCookieJar,
-	}
+	client := &http.Client{Transport: tr}
 
 	req, _ := http.NewRequest("GET", fmt.Sprintf("%s/production.json?details=1", config.String("enphase.EnvoyHost")), nil)
-	// req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", jwt))
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", myJWTtoken))
+
 	requestResponse, requestError := client.Do(req)
 	if requestError != nil {
 		log.Fatalln(requestError)
@@ -933,17 +932,16 @@ func loadProductionDetailsData(authedCookieJar cookiejar.Jar) enphaseMetrics {
 
 }
 
-func loadInverterData(authedCookieJar cookiejar.Jar) Inverters {
+func loadInverterData(myJWTtoken string) Inverters {
 	// /api/v1/production/inverters
 	tr := &http.Transport{
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 	}
-	client := &http.Client{Transport: tr,
-		Jar: &authedCookieJar,
-	}
+	client := &http.Client{Transport: tr}
 
 	req, _ := http.NewRequest("GET", fmt.Sprintf("%s/api/v1/production/inverters", config.String("enphase.EnvoyHost")), nil)
-	// req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", jwt))
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", myJWTtoken))
+
 	requestResponse, requestError := client.Do(req)
 	if requestError != nil {
 		log.Fatalln(requestError)
@@ -1034,7 +1032,7 @@ func main() {
 
 	if token == "" || intError != nil || intError2 != nil || time.Unix(int64(tokenExpiry), 0).Before(time.Now()) {
 		log.Println("No JWT token found in config")
-		longLivedJWT, _ := getLongLivedJWT()
+		longLivedJWT, _ = getLongLivedJWT()
 		if debug {
 			log.Printf("Long lived JWT: \n %#v\n", longLivedJWT)
 		}
@@ -1067,14 +1065,15 @@ func main() {
 	// if debug {
 	// 	log.Printf("Short Lived JWT: \n %#v\n", jwt)
 	// }
-	hardToObtainCookies, loadJWTIntoCookieError := loadJWTIntoCookie(longLivedJWT.Token)
-	if loadJWTIntoCookieError != nil {
-		log.Fatalln(loadJWTIntoCookieError)
-	}
-	if debug {
-		log.Println("Cookies: ")
-		log.Println(hardToObtainCookies)
-	}
+
+	// hardToObtainCookies, loadJWTIntoCookieError := loadJWTIntoCookie(longLivedJWT.Token)
+	// if loadJWTIntoCookieError != nil {
+	// 	log.Fatalln(loadJWTIntoCookieError)
+	// }
+	// if debug {
+	// 	log.Println("Cookies: ")
+	// 	log.Println(hardToObtainCookies)
+	// }
 
 	// name := myConfig.String("name")
 	// fmt.Print(name) // "new name"
@@ -1090,6 +1089,6 @@ func main() {
 
 	// loadStreamData(hardToObtainCookies)
 
-	scheduleInserts(hardToObtainCookies)
+	scheduleInserts(longLivedJWT.Token)
 
 }
