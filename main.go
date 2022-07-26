@@ -11,6 +11,7 @@ import (
 	"net/http/cookiejar"
 	"net/url"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/antchfx/htmlquery"
@@ -116,6 +117,369 @@ type Consumption struct {
 // 	WhNow       int    `json:"whNow"`
 // 	State       string `json:"state"`
 // }
+
+type SenseTrends struct {
+	// Steps       int       `json:"steps"`
+	// Start       time.Time `json:"start"`
+	// End         time.Time `json:"end"`
+	Consumption struct {
+		Total float64 `json:"total"`
+		// 	Totals  []float64 `json:"totals"`
+		// 	Devices []struct {
+		// 		ID   string `json:"id"`
+		// 		Name string `json:"name"`
+		// 		Icon string `json:"icon"`
+		// 		Tags struct {
+		// 			DefaultUserDeviceType       string `json:"DefaultUserDeviceType"`
+		// 			DeviceListAllowed           string `json:"DeviceListAllowed"`
+		// 			TimelineAllowed             string `json:"TimelineAllowed"`
+		// 			UserDeleted                 string `json:"UserDeleted"`
+		// 			UserDeviceTypeDisplayString string `json:"UserDeviceTypeDisplayString"`
+		// 			UserEditable                string `json:"UserEditable"`
+		// 			UserMergeable               string `json:"UserMergeable"`
+		// 			UserShowBubble              string `json:"UserShowBubble"`
+		// 			UserShowInDeviceList        string `json:"UserShowInDeviceList"`
+		// 		} `json:"tags,omitempty"`
+		// 		History     []float64 `json:"history"`
+		// 		Avgw        float64   `json:"avgw"`
+		// 		TotalKwh    float64   `json:"total_kwh"`
+		// 		TotalCost   int       `json:"total_cost"`
+		// 		Pct         float64   `json:"pct"`
+		// 		CostHistory []int     `json:"cost_history"`
+		// 		Tags0       struct {
+		// 			Alertable             string    `json:"Alertable"`
+		// 			AlwaysOn              string    `json:"AlwaysOn"`
+		// 			DateCreated           time.Time `json:"DateCreated"`
+		// 			DateFirstUsage        string    `json:"DateFirstUsage"`
+		// 			DefaultUserDeviceType string    `json:"DefaultUserDeviceType"`
+		// 			DeployToMonitor       string    `json:"DeployToMonitor"`
+		// 			DeviceListAllowed     string    `json:"DeviceListAllowed"`
+		// 			ModelCreatedVersion   string    `json:"ModelCreatedVersion"`
+		// 			ModelUpdatedVersion   string    `json:"ModelUpdatedVersion"`
+		// 			NameUseredit          string    `json:"name_useredit"`
+		// 			OriginalName          string    `json:"OriginalName"`
+		// 			PeerNames             []struct {
+		// 				Name                        string  `json:"Name"`
+		// 				UserDeviceType              string  `json:"UserDeviceType"`
+		// 				Percent                     float64 `json:"Percent"`
+		// 				Icon                        string  `json:"Icon"`
+		// 				UserDeviceTypeDisplayString string  `json:"UserDeviceTypeDisplayString"`
+		// 			} `json:"PeerNames"`
+		// 			Pending                     string `json:"Pending"`
+		// 			Revoked                     string `json:"Revoked"`
+		// 			TimelineAllowed             string `json:"TimelineAllowed"`
+		// 			TimelineDefault             string `json:"TimelineDefault"`
+		// 			Type                        string `json:"Type"`
+		// 			UserDeletable               string `json:"UserDeletable"`
+		// 			UserDeviceTypeDisplayString string `json:"UserDeviceTypeDisplayString"`
+		// 			UserEditable                string `json:"UserEditable"`
+		// 			UserEditableMeta            string `json:"UserEditableMeta"`
+		// 			UserMergeable               string `json:"UserMergeable"`
+		// 			UserShowBubble              string `json:"UserShowBubble"`
+		// 			UserShowInDeviceList        string `json:"UserShowInDeviceList"`
+		// 		} `json:"tags,omitempty"`
+		// 		Tags1 struct {
+		// 			Alertable             string    `json:"Alertable"`
+		// 			AlwaysOn              string    `json:"AlwaysOn"`
+		// 			DateCreated           time.Time `json:"DateCreated"`
+		// 			DateFirstUsage        string    `json:"DateFirstUsage"`
+		// 			DefaultUserDeviceType string    `json:"DefaultUserDeviceType"`
+		// 			DeployToMonitor       string    `json:"DeployToMonitor"`
+		// 			DeviceListAllowed     string    `json:"DeviceListAllowed"`
+		// 			ModelCreatedVersion   string    `json:"ModelCreatedVersion"`
+		// 			ModelUpdatedVersion   string    `json:"ModelUpdatedVersion"`
+		// 			NameUseredit          string    `json:"name_useredit"`
+		// 			OriginalName          string    `json:"OriginalName"`
+		// 			PeerNames             []struct {
+		// 				Name                        string  `json:"Name"`
+		// 				UserDeviceType              string  `json:"UserDeviceType"`
+		// 				Percent                     float64 `json:"Percent"`
+		// 				Icon                        string  `json:"Icon"`
+		// 				UserDeviceTypeDisplayString string  `json:"UserDeviceTypeDisplayString"`
+		// 			} `json:"PeerNames"`
+		// 			Pending                     string `json:"Pending"`
+		// 			Revoked                     string `json:"Revoked"`
+		// 			TimelineAllowed             string `json:"TimelineAllowed"`
+		// 			TimelineDefault             string `json:"TimelineDefault"`
+		// 			Type                        string `json:"Type"`
+		// 			UserDeletable               string `json:"UserDeletable"`
+		// 			UserDeviceTypeDisplayString string `json:"UserDeviceTypeDisplayString"`
+		// 			UserEditable                string `json:"UserEditable"`
+		// 			UserEditableMeta            string `json:"UserEditableMeta"`
+		// 			UserMergeable               string `json:"UserMergeable"`
+		// 			UserShowBubble              string `json:"UserShowBubble"`
+		// 			UserShowInDeviceList        string `json:"UserShowInDeviceList"`
+		// 		} `json:"tags,omitempty"`
+		// 		Tags2 struct {
+		// 			Alertable             string    `json:"Alertable"`
+		// 			AlwaysOn              string    `json:"AlwaysOn"`
+		// 			DateCreated           time.Time `json:"DateCreated"`
+		// 			DateFirstUsage        string    `json:"DateFirstUsage"`
+		// 			DefaultUserDeviceType string    `json:"DefaultUserDeviceType"`
+		// 			DeployToMonitor       string    `json:"DeployToMonitor"`
+		// 			DeviceListAllowed     string    `json:"DeviceListAllowed"`
+		// 			ModelCreatedVersion   string    `json:"ModelCreatedVersion"`
+		// 			ModelUpdatedVersion   string    `json:"ModelUpdatedVersion"`
+		// 			NameUseredit          string    `json:"name_useredit"`
+		// 			OriginalName          string    `json:"OriginalName"`
+		// 			PeerNames             []struct {
+		// 				Name                        string  `json:"Name"`
+		// 				UserDeviceType              string  `json:"UserDeviceType"`
+		// 				Percent                     float64 `json:"Percent"`
+		// 				Icon                        string  `json:"Icon"`
+		// 				UserDeviceTypeDisplayString string  `json:"UserDeviceTypeDisplayString"`
+		// 			} `json:"PeerNames"`
+		// 			Pending                     string `json:"Pending"`
+		// 			Revoked                     string `json:"Revoked"`
+		// 			TimelineAllowed             string `json:"TimelineAllowed"`
+		// 			TimelineDefault             string `json:"TimelineDefault"`
+		// 			Type                        string `json:"Type"`
+		// 			UserDeletable               string `json:"UserDeletable"`
+		// 			UserDeviceTypeDisplayString string `json:"UserDeviceTypeDisplayString"`
+		// 			UserEditable                string `json:"UserEditable"`
+		// 			UserEditableMeta            string `json:"UserEditableMeta"`
+		// 			UserMergeable               string `json:"UserMergeable"`
+		// 			UserShowBubble              string `json:"UserShowBubble"`
+		// 			UserShowInDeviceList        string `json:"UserShowInDeviceList"`
+		// 		} `json:"tags,omitempty"`
+		// 		Tags3 struct {
+		// 			Alertable             string    `json:"Alertable"`
+		// 			AlwaysOn              string    `json:"AlwaysOn"`
+		// 			DateCreated           time.Time `json:"DateCreated"`
+		// 			DateFirstUsage        string    `json:"DateFirstUsage"`
+		// 			DefaultUserDeviceType string    `json:"DefaultUserDeviceType"`
+		// 			DeployToMonitor       string    `json:"DeployToMonitor"`
+		// 			DeviceListAllowed     string    `json:"DeviceListAllowed"`
+		// 			ModelCreatedVersion   string    `json:"ModelCreatedVersion"`
+		// 			ModelUpdatedVersion   string    `json:"ModelUpdatedVersion"`
+		// 			NameUseredit          string    `json:"name_useredit"`
+		// 			NameUserGuess         string    `json:"NameUserGuess"`
+		// 			OriginalName          string    `json:"OriginalName"`
+		// 			PeerNames             []struct {
+		// 				Name                        string  `json:"Name"`
+		// 				UserDeviceType              string  `json:"UserDeviceType"`
+		// 				Percent                     float64 `json:"Percent"`
+		// 				Icon                        string  `json:"Icon"`
+		// 				UserDeviceTypeDisplayString string  `json:"UserDeviceTypeDisplayString"`
+		// 			} `json:"PeerNames"`
+		// 			Pending                     string `json:"Pending"`
+		// 			PreselectionIndex           int    `json:"PreselectionIndex"`
+		// 			Revoked                     string `json:"Revoked"`
+		// 			TimelineAllowed             string `json:"TimelineAllowed"`
+		// 			TimelineDefault             string `json:"TimelineDefault"`
+		// 			Type                        string `json:"Type"`
+		// 			UserDeletable               string `json:"UserDeletable"`
+		// 			UserDeviceType              string `json:"UserDeviceType"`
+		// 			UserDeviceTypeDisplayString string `json:"UserDeviceTypeDisplayString"`
+		// 			UserEditable                string `json:"UserEditable"`
+		// 			UserEditableMeta            string `json:"UserEditableMeta"`
+		// 			UserMergeable               string `json:"UserMergeable"`
+		// 			UserShowBubble              string `json:"UserShowBubble"`
+		// 			UserShowInDeviceList        string `json:"UserShowInDeviceList"`
+		// 		} `json:"tags,omitempty"`
+		// 		Tags4 struct {
+		// 			Alertable             string    `json:"Alertable"`
+		// 			AlwaysOn              string    `json:"AlwaysOn"`
+		// 			DateCreated           time.Time `json:"DateCreated"`
+		// 			DateFirstUsage        string    `json:"DateFirstUsage"`
+		// 			DefaultUserDeviceType string    `json:"DefaultUserDeviceType"`
+		// 			DeployToMonitor       string    `json:"DeployToMonitor"`
+		// 			DeviceListAllowed     string    `json:"DeviceListAllowed"`
+		// 			ModelCreatedVersion   string    `json:"ModelCreatedVersion"`
+		// 			ModelUpdatedVersion   string    `json:"ModelUpdatedVersion"`
+		// 			NameUseredit          string    `json:"name_useredit"`
+		// 			NameUserGuess         string    `json:"NameUserGuess"`
+		// 			OriginalName          string    `json:"OriginalName"`
+		// 			PeerNames             []struct {
+		// 				Name                        string  `json:"Name"`
+		// 				UserDeviceType              string  `json:"UserDeviceType"`
+		// 				Percent                     float64 `json:"Percent"`
+		// 				Icon                        string  `json:"Icon"`
+		// 				UserDeviceTypeDisplayString string  `json:"UserDeviceTypeDisplayString"`
+		// 			} `json:"PeerNames"`
+		// 			Pending                     string `json:"Pending"`
+		// 			Revoked                     string `json:"Revoked"`
+		// 			TimelineAllowed             string `json:"TimelineAllowed"`
+		// 			TimelineDefault             string `json:"TimelineDefault"`
+		// 			Type                        string `json:"Type"`
+		// 			UserDeletable               string `json:"UserDeletable"`
+		// 			UserDeviceType              string `json:"UserDeviceType"`
+		// 			UserDeviceTypeDisplayString string `json:"UserDeviceTypeDisplayString"`
+		// 			UserEditable                string `json:"UserEditable"`
+		// 			UserEditableMeta            string `json:"UserEditableMeta"`
+		// 			UserMergeable               string `json:"UserMergeable"`
+		// 			UserShowBubble              string `json:"UserShowBubble"`
+		// 			UserShowInDeviceList        string `json:"UserShowInDeviceList"`
+		// 		} `json:"tags,omitempty"`
+		// 		Tags5 struct {
+		// 			Alertable             string    `json:"Alertable"`
+		// 			AlwaysOn              string    `json:"AlwaysOn"`
+		// 			DateCreated           time.Time `json:"DateCreated"`
+		// 			DateFirstUsage        string    `json:"DateFirstUsage"`
+		// 			DefaultUserDeviceType string    `json:"DefaultUserDeviceType"`
+		// 			DeployToMonitor       string    `json:"DeployToMonitor"`
+		// 			DeviceListAllowed     string    `json:"DeviceListAllowed"`
+		// 			ModelCreatedVersion   string    `json:"ModelCreatedVersion"`
+		// 			ModelUpdatedVersion   string    `json:"ModelUpdatedVersion"`
+		// 			NameUseredit          string    `json:"name_useredit"`
+		// 			OriginalName          string    `json:"OriginalName"`
+		// 			PeerNames             []struct {
+		// 				Name                        string  `json:"Name"`
+		// 				UserDeviceType              string  `json:"UserDeviceType"`
+		// 				Percent                     float64 `json:"Percent"`
+		// 				Icon                        string  `json:"Icon"`
+		// 				UserDeviceTypeDisplayString string  `json:"UserDeviceTypeDisplayString"`
+		// 			} `json:"PeerNames"`
+		// 			Pending                     string `json:"Pending"`
+		// 			Revoked                     string `json:"Revoked"`
+		// 			TimelineAllowed             string `json:"TimelineAllowed"`
+		// 			TimelineDefault             string `json:"TimelineDefault"`
+		// 			Type                        string `json:"Type"`
+		// 			UserDeletable               string `json:"UserDeletable"`
+		// 			UserDeviceTypeDisplayString string `json:"UserDeviceTypeDisplayString"`
+		// 			UserEditable                string `json:"UserEditable"`
+		// 			UserEditableMeta            string `json:"UserEditableMeta"`
+		// 			UserMergeable               string `json:"UserMergeable"`
+		// 			UserShowBubble              string `json:"UserShowBubble"`
+		// 			UserShowInDeviceList        string `json:"UserShowInDeviceList"`
+		// 		} `json:"tags,omitempty"`
+		// 		Make  string `json:"make,omitempty"`
+		// 		Tags6 struct {
+		// 			Alertable                   string        `json:"Alertable"`
+		// 			AlwaysOn                    string        `json:"AlwaysOn"`
+		// 			DateCreated                 time.Time     `json:"DateCreated"`
+		// 			DateFirstUsage              string        `json:"DateFirstUsage"`
+		// 			DefaultUserDeviceType       string        `json:"DefaultUserDeviceType"`
+		// 			DeployToMonitor             string        `json:"DeployToMonitor"`
+		// 			DeviceListAllowed           string        `json:"DeviceListAllowed"`
+		// 			MergedDevices               string        `json:"MergedDevices"`
+		// 			ModelCreatedVersion         string        `json:"ModelCreatedVersion"`
+		// 			ModelUpdatedVersion         string        `json:"ModelUpdatedVersion"`
+		// 			NameUseredit                string        `json:"name_useredit"`
+		// 			OriginalName                string        `json:"OriginalName"`
+		// 			PeerNames                   []interface{} `json:"PeerNames"`
+		// 			Pending                     string        `json:"Pending"`
+		// 			Revoked                     string        `json:"Revoked"`
+		// 			TimelineAllowed             string        `json:"TimelineAllowed"`
+		// 			TimelineDefault             string        `json:"TimelineDefault"`
+		// 			Type                        string        `json:"Type"`
+		// 			UserDeletable               string        `json:"UserDeletable"`
+		// 			UserDeviceType              string        `json:"UserDeviceType"`
+		// 			UserDeviceTypeDisplayString string        `json:"UserDeviceTypeDisplayString"`
+		// 			UserEditable                string        `json:"UserEditable"`
+		// 			UserEditableMeta            string        `json:"UserEditableMeta"`
+		// 			UserMergeable               string        `json:"UserMergeable"`
+		// 			UserShowBubble              string        `json:"UserShowBubble"`
+		// 			UserShowInDeviceList        string        `json:"UserShowInDeviceList"`
+		// 			Virtual                     string        `json:"Virtual"`
+		// 		} `json:"tags,omitempty"`
+		// 		GivenMake string `json:"given_make,omitempty"`
+		// 		MonitorID int    `json:"monitorId,omitempty"`
+		// 		Tags7     struct {
+		// 			UserDeviceTypeDisplayString string `json:"UserDeviceTypeDisplayString"`
+		// 		} `json:"tags,omitempty"`
+		// 	} `json:"devices"`
+		TotalCost int `json:"total_cost"`
+		// 	TotalCosts []int `json:"total_costs"`
+	} `json:"consumption"`
+	Production struct {
+		Total float64 `json:"total"`
+		// 	Totals  []float64 `json:"totals"`
+		// 	Devices []struct {
+		// 		ID   string `json:"id"`
+		// 		Name string `json:"name"`
+		// 		Icon string `json:"icon"`
+		// 		Tags struct {
+		// 			DefaultUserDeviceType       string `json:"DefaultUserDeviceType"`
+		// 			DeviceListAllowed           string `json:"DeviceListAllowed"`
+		// 			TimelineAllowed             string `json:"TimelineAllowed"`
+		// 			UserDeleted                 string `json:"UserDeleted"`
+		// 			UserDeviceTypeDisplayString string `json:"UserDeviceTypeDisplayString"`
+		// 			UserEditable                string `json:"UserEditable"`
+		// 			UserMergeable               string `json:"UserMergeable"`
+		// 			UserShowBubble              string `json:"UserShowBubble"`
+		// 			UserShowInDeviceList        string `json:"UserShowInDeviceList"`
+		// 		} `json:"tags"`
+		// 		History     []float64 `json:"history"`
+		// 		Avgw        float64   `json:"avgw"`
+		// 		TotalCost   int       `json:"total_cost"`
+		// 		Pct         float64   `json:"pct"`
+		// 		CostHistory []int     `json:"cost_history"`
+		// 	} `json:"devices"`
+		TotalCost int `json:"total_cost"`
+		// 	TotalCosts []int `json:"total_costs"`
+	} `json:"production"`
+	// GridToBattery              interface{} `json:"grid_to_battery"`
+	// SolarToHome                interface{} `json:"solar_to_home"`
+	// SolarToBattery             interface{} `json:"solar_to_battery"`
+	// BatteryToHome              interface{} `json:"battery_to_home"`
+	// BatteryToGrid              interface{} `json:"battery_to_grid"`
+	// TopMovers                  interface{} `json:"top_movers"`
+	ToGrid   float64 `json:"to_grid"`
+	FromGrid float64 `json:"from_grid"`
+	// ConsumptionCostChangeCents interface{} `json:"consumption_cost_change_cents"`
+	// ConsumptionPercentChange   interface{} `json:"consumption_percent_change"`
+	// ProductionPercentChange    interface{} `json:"production_percent_change"`
+	ToGridCost   int `json:"to_grid_cost"`
+	FromGridCost int `json:"from_grid_cost"`
+	// TrendText                  interface{} `json:"trend_text"`
+	// UsageText                  interface{} `json:"usage_text"`
+	// TrendConsumption           interface{} `json:"trend_consumption"`
+	// TrendCost                  interface{} `json:"trend_cost"`
+	Scale         string  `json:"scale"`
+	SolarPowered  int     `json:"solar_powered"`
+	NetProduction float64 `json:"net_production"`
+	ProductionPct int     `json:"production_pct"`
+	// ConsumptionKwhChange       interface{} `json:"consumption_kwh_change"`
+}
+
+type SenseAuth struct {
+	Authorized  bool   `json:"authorized"`
+	AccountID   int    `json:"account_id"`
+	UserID      int    `json:"user_id"`
+	AccessToken string `json:"access_token"`
+}
+
+func authSense() string {
+	authURL := "https://api.sense.com/apiservice/api/v1/authenticate"
+	method := "POST"
+
+	payload := strings.NewReader("email=" + url.QueryEscape(config.String("sense.username")) + "&password=" + url.QueryEscape(config.String("sense.password")))
+
+	client := &http.Client{}
+	req, err := http.NewRequest(method, authURL, payload)
+
+	if err != nil {
+		log.Println(err)
+		return ""
+	}
+	req.Header.Add("Sense-Client-Version", "1.17.1-20c25f9")
+	req.Header.Add("X-Sense-Protocol", "3")
+	req.Header.Add("User-Agent", "okhttp/3.8.0")
+	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+
+	res, err := client.Do(req)
+	if err != nil {
+		log.Println(err)
+		return ""
+	}
+	defer res.Body.Close()
+
+	body, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		log.Println(err)
+		return ""
+	}
+
+	authResponse := SenseAuth{}
+
+	err = json.Unmarshal(body, &authResponse)
+	if err != nil || !(authResponse.Authorized) {
+		log.Println(err)
+		return ""
+	}
+	return authResponse.AccessToken
+}
 
 func writeToInfluxDB(c influxclient.Client, pointName string, tags map[string]string,
 	fields map[string]interface{}, t time.Time) {
@@ -284,21 +648,125 @@ func initInfluxDB() influxclient.Client {
 	return influxDBcnx
 }
 
-func scheduleInserts(myCookies cookiejar.Jar) {
+func scheduleInserts(myJWTtoken string) {
 
 	period := time.Duration(config.Int("influxdb.periodInMinutes"))
 	ticker := time.NewTicker(period * time.Minute)
 
-	loadDataAndWriteToInfluxDB(myCookies)
+	senseToken := authSense()
+
+	loadEnphaseDataAndWriteItToInfluxDB(myJWTtoken)
+
+	if senseToken == "" {
+		log.Println("No Sense token, not getting Sense data")
+		return
+	}
+
+	if config.Bool("sense.enabled") && senseToken != "" {
+		senseData := loadSenseData(senseToken)
+		if senseData != nil {
+			writeSenseDataToInfluxDB(*senseData)
+		}
+	}
 
 	for range ticker.C {
-		loadDataAndWriteToInfluxDB(myCookies)
+
+		loadEnphaseDataAndWriteItToInfluxDB(myJWTtoken)
+
+		if config.Bool("sense.enabled") && senseToken != "" {
+			senseData := loadSenseData(senseToken)
+			if senseData != nil {
+				writeSenseDataToInfluxDB(*senseData)
+			}
+
+		}
 	}
 }
+func writeSenseDataToInfluxDB(senseTrendsData SenseTrends) {
+	log.Println("Writing Sense data to InfluxDB")
+	eventTime := time.Now()
 
-func loadDataAndWriteToInfluxDB(myCookies cookiejar.Jar) {
+	tags := map[string]string{"senseMonitorID": config.String("sense.monitorID")}
+
+	// 		log.Println("Retrieved Sense Trends data successfully:")
+	// log.Printf("Production: %.2fkWh", senseTrendsData.Production.Total)
+	// log.Printf("Consumption: %.2fkWh", senseTrendsData.Consumption.Total)
+	// log.Printf("To grid: %.2fkWh", senseTrendsData.ToGrid)
+	// log.Printf("From grid: %.2fkWh", senseTrendsData.FromGrid)
+	// log.Printf("Solar Powered: %v%%", senseTrendsData.SolarPowered)
+	// log.Printf("Net Production: %.2fkWh", senseTrendsData.NetProduction)
+	// log.Printf("Production: %d%%", senseTrendsData.ProductionPct)
+
+	fields := map[string]interface{}{
+		"Production":    senseTrendsData.Production.Total,
+		"Consumption":   senseTrendsData.Consumption.Total,
+		"ToGrid":        senseTrendsData.ToGrid,
+		"FromGrid":      senseTrendsData.FromGrid,
+		"SolarPowered":  senseTrendsData.SolarPowered,
+		"NetProduction": senseTrendsData.NetProduction,
+		"ProductionPct": senseTrendsData.ProductionPct,
+	}
+	writeToInfluxDB(influxDBcnx, "sense", tags, fields, eventTime)
+
+}
+
+func loadSenseData(senseToken string) *SenseTrends {
+	log.Println("Retrieving Sense data from unofficial API")
+
+	beginingOfDay := time.Now().Round(24 * time.Hour)
+
+	url := "https://api.sense.com/apiservice/api/v1/app/history/trends?monitor_id=" + config.String("sense.monitorID") + "&scale=DAY&start=" + beginingOfDay.Format("2006-01-02T15:04:05.000Z")
+	log.Println(url)
+	method := "GET"
+
+	client := &http.Client{}
+	req, err := http.NewRequest(method, url, nil)
+
+	if err != nil {
+		fmt.Println(err)
+		return nil
+	}
+	req.Header.Add("Authorization", "Bearer "+senseToken)
+
+	res, err := client.Do(req)
+	if err != nil {
+		fmt.Println(err)
+		return nil
+	}
+	defer res.Body.Close()
+
+	body, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		log.Println(err)
+		return nil
+	}
+	// fmt.Println(string(body))
+
+	senseTrendsData := SenseTrends{}
+	unmarshalError := json.Unmarshal([]byte(body), &senseTrendsData)
+
+	if unmarshalError != nil {
+		log.Println("Error unmarshalling:" + string(body))
+
+		log.Println(unmarshalError)
+		panic(0)
+	}
+	log.Println("Retrieved Sense Trends data successfully:")
+	log.Printf("Production: %.2fkWh", senseTrendsData.Production.Total)
+	log.Printf("Consumption: %.2fkWh", senseTrendsData.Consumption.Total)
+	log.Printf("To grid: %.2fkWh", senseTrendsData.ToGrid)
+	log.Printf("From grid: %.2fkWh", senseTrendsData.FromGrid)
+	log.Printf("Solar Powered: %v%%", senseTrendsData.SolarPowered)
+	log.Printf("Net Production: %.2fkWh", senseTrendsData.NetProduction)
+	log.Printf("Production: %d%%", senseTrendsData.ProductionPct)
+
+	return &senseTrendsData
+
+}
+
+func loadEnphaseDataAndWriteItToInfluxDB(myJWTtoken string) {
 	log.Println("Retrieving Enphase Production data, from local endpoint")
-	enphaseData := loadProductionDetailsData(myCookies)
+	enphaseData := loadProductionDetailsData(myJWTtoken)
 
 	for _, data := range enphaseData.Production {
 
@@ -347,7 +815,7 @@ func loadDataAndWriteToInfluxDB(myCookies cookiejar.Jar) {
 	}
 
 	log.Println("Retrieving Enphase Inverter data, from local endpoint")
-	invertersData := loadInverterData(myCookies)
+	invertersData := loadInverterData(myJWTtoken)
 
 	totalInverters := 0
 	for _, data_inverter := range invertersData {
@@ -431,17 +899,16 @@ func loadJWTIntoCookie(jwt string) (cookiejar.Jar, error) {
 
 	return *jar, nil
 }
-func loadProductionDetailsData(authedCookieJar cookiejar.Jar) enphaseMetrics {
+func loadProductionDetailsData(myJWTtoken string) enphaseMetrics {
 	// /production.json?details=1
 	tr := &http.Transport{
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 	}
-	client := &http.Client{Transport: tr,
-		Jar: &authedCookieJar,
-	}
+	client := &http.Client{Transport: tr}
 
 	req, _ := http.NewRequest("GET", fmt.Sprintf("%s/production.json?details=1", config.String("enphase.EnvoyHost")), nil)
-	// req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", jwt))
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", myJWTtoken))
+
 	requestResponse, requestError := client.Do(req)
 	if requestError != nil {
 		log.Fatalln(requestError)
@@ -465,17 +932,16 @@ func loadProductionDetailsData(authedCookieJar cookiejar.Jar) enphaseMetrics {
 
 }
 
-func loadInverterData(authedCookieJar cookiejar.Jar) Inverters {
+func loadInverterData(myJWTtoken string) Inverters {
 	// /api/v1/production/inverters
 	tr := &http.Transport{
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 	}
-	client := &http.Client{Transport: tr,
-		Jar: &authedCookieJar,
-	}
+	client := &http.Client{Transport: tr}
 
 	req, _ := http.NewRequest("GET", fmt.Sprintf("%s/api/v1/production/inverters", config.String("enphase.EnvoyHost")), nil)
-	// req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", jwt))
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", myJWTtoken))
+
 	requestResponse, requestError := client.Do(req)
 	if requestError != nil {
 		log.Fatalln(requestError)
@@ -566,7 +1032,7 @@ func main() {
 
 	if token == "" || intError != nil || intError2 != nil || time.Unix(int64(tokenExpiry), 0).Before(time.Now()) {
 		log.Println("No JWT token found in config")
-		longLivedJWT, _ := getLongLivedJWT()
+		longLivedJWT, _ = getLongLivedJWT()
 		if debug {
 			log.Printf("Long lived JWT: \n %#v\n", longLivedJWT)
 		}
@@ -599,14 +1065,15 @@ func main() {
 	// if debug {
 	// 	log.Printf("Short Lived JWT: \n %#v\n", jwt)
 	// }
-	hardToObtainCookies, loadJWTIntoCookieError := loadJWTIntoCookie(longLivedJWT.Token)
-	if loadJWTIntoCookieError != nil {
-		log.Fatalln(loadJWTIntoCookieError)
-	}
-	if debug {
-		log.Println("Cookies: ")
-		log.Println(hardToObtainCookies)
-	}
+
+	// hardToObtainCookies, loadJWTIntoCookieError := loadJWTIntoCookie(longLivedJWT.Token)
+	// if loadJWTIntoCookieError != nil {
+	// 	log.Fatalln(loadJWTIntoCookieError)
+	// }
+	// if debug {
+	// 	log.Println("Cookies: ")
+	// 	log.Println(hardToObtainCookies)
+	// }
 
 	// name := myConfig.String("name")
 	// fmt.Print(name) // "new name"
@@ -620,8 +1087,8 @@ func main() {
 
 	// ioutil.WriteFile("config.yaml", buf.Bytes(), 0755)
 
-	loadStreamData(hardToObtainCookies)
+	// loadStreamData(hardToObtainCookies)
 
-	scheduleInserts(hardToObtainCookies)
+	scheduleInserts(longLivedJWT.Token)
 
 }

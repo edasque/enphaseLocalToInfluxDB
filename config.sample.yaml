@@ -12,4 +12,9 @@ influxdb:
   password: influxdbpassword
   periodInMinutes: 1
   user: telegraf
+sense:
+  enabled: true
+  username: mysenseusername
+  password: mysensepassword
+  monitorID: 342552
 
