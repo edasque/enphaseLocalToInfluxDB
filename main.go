@@ -536,10 +536,7 @@ func getLongLivedJWT() (JWTToken, error) {
 	fieldsLogin := url.Values{"user[email]": {config.String("enphase.EnphaseUser")}, "user[password]": {config.String("enphase.EnphasePassword")}}
 
 	_, errLogin := client.PostForm("https://enlighten.enphaseenergy.com//login/login", fieldsLogin)
-	// Response error checking omitted, but what we needed was the cookie, which is now in the jar
-	// fmt.Println(respLogin)
-	// fmt.Println(errLogin)
-	// fmt.Println(jar)
+
 	if errLogin != nil {
 		log.Println("Error loggin in to get long term JWT")
 		log.Fatalln(errLogin)
@@ -599,10 +596,7 @@ func getJWT() (string, error) {
 	fieldsLogin := url.Values{"username": {config.String("enphase.EnphaseUser")}, "password": {config.String("enphase.EnphasePassword")}}
 
 	_, errLogin := client.PostForm("https://entrez.enphaseenergy.com/login", fieldsLogin)
-	// Response error checking omitted, but what we needed was the cookie, which is now in the jar
-	// fmt.Println(respLogin)
-	// fmt.Println(errLogin)
-	// fmt.Println(jar)
+
 	if errLogin != nil {
 		log.Fatalln(errLogin)
 	}
@@ -688,15 +682,6 @@ func writeSenseDataToInfluxDB(senseTrendsData SenseTrends) {
 
 	tags := map[string]string{"senseMonitorID": config.String("sense.monitorID")}
 
-	// 		log.Println("Retrieved Sense Trends data successfully:")
-	// log.Printf("Production: %.2fkWh", senseTrendsData.Production.Total)
-	// log.Printf("Consumption: %.2fkWh", senseTrendsData.Consumption.Total)
-	// log.Printf("To grid: %.2fkWh", senseTrendsData.ToGrid)
-	// log.Printf("From grid: %.2fkWh", senseTrendsData.FromGrid)
-	// log.Printf("Solar Powered: %v%%", senseTrendsData.SolarPowered)
-	// log.Printf("Net Production: %.2fkWh", senseTrendsData.NetProduction)
-	// log.Printf("Production: %d%%", senseTrendsData.ProductionPct)
-
 	fields := map[string]interface{}{
 		"Production":    senseTrendsData.Production.Total,
 		"Consumption":   senseTrendsData.Consumption.Total,
@@ -735,12 +720,16 @@ func loadSenseData(senseToken string) *SenseTrends {
 	}
 	defer res.Body.Close()
 
+	if res.StatusCode != 200 {
+		log.Printf("Sense response code: %d\n", res.StatusCode)
+		return nil
+	}
+
 	body, err := ioutil.ReadAll(res.Body)
 	if err != nil {
 		log.Println(err)
 		return nil
 	}
-	// fmt.Println(string(body))
 
 	senseTrendsData := SenseTrends{}
 	unmarshalError := json.Unmarshal([]byte(body), &senseTrendsData)
@@ -775,9 +764,11 @@ func loadEnphaseDataAndWriteItToInfluxDB(myJWTtoken string) {
 		tags := map[string]string{"serial": config.String("enphase.EnphaseEnvoySerial"), "type": data.Type}
 
 		fields := map[string]interface{}{
-			"whLifetime":      data.WhLifetime,
-			"WhLastSevenDays": data.WhLastSevenDays,
-			"WhToday":         data.WhToday,
+			"whLifetime":           data.WhLifetime,
+			"WhLastSevenDays":      data.WhLastSevenDays,
+			"WhToday":              data.WhToday,
+			"WNow":                 data.WNow,
+			"activeInverterCounts": data.ActiveCount,
 		}
 		if debug {
 			log.Printf("WhLifeTime: \n %#v\n", data.WhLifetime)
@@ -785,9 +776,11 @@ func loadEnphaseDataAndWriteItToInfluxDB(myJWTtoken string) {
 		}
 		writeToInfluxDB(influxDBcnx, "production", tags, fields, eventTime)
 
-		log.Printf("Today's Production (%s): %f", data.Type, data.WhToday)
-		log.Printf("Week's Production (%s): %f", data.Type, data.WhLastSevenDays)
-		log.Printf("Lifetime Production (%s): %d", data.Type, data.WhLifetime)
+		log.Printf("Today's Production (%s): %fWh", data.Type, data.WhToday)
+		log.Printf("Week's Production (%s): %fWh", data.Type, data.WhLastSevenDays)
+		log.Printf("Lifetime Production (%s): %dWh", data.Type, data.WhLifetime)
+		log.Printf("Current Production (%s): %dW", data.Type, data.WNow)
+		log.Printf("Active Inverters (%s): %d", data.Type, data.ActiveCount)
 
 	}
 
@@ -996,14 +989,7 @@ func loadStreamData(authedCookieJar cookiejar.Jar) {
 		log.Println(body)
 	}
 
-	// res := Inverters{}
-	// json.Unmarshal([]byte(body), &res)
-
 	log.Println("Requested Stream data from local endpoint, Response status was: ", requestResponse.Status)
-	// log.Println(requestResponse)
-	// log.Println(body)
-
-	// return res
 
 }
 
@@ -1023,12 +1009,6 @@ func main() {
 	token := config.String("enphase.jwtToken.Token")
 
 	var longLivedJWT JWTToken
-
-	// log.Println(token)
-	// log.Println(tokenExpiry)
-	// log.Println(tokenGen)
-	// log.Println(intError)
-	// log.Println(intError2)
 
 	if token == "" || intError != nil || intError2 != nil || time.Unix(int64(tokenExpiry), 0).Before(time.Now()) {
 		log.Println("No JWT token found in config")
@@ -1052,42 +1032,6 @@ func main() {
 	}
 
 	influxDBcnx = initInfluxDB()
-
-	// value := config.String("enphase.apiKey")
-
-	// config.Set("name", "James")
-	// writeConfig()
-
-	// jwt, errorJWT := getJWT()
-	// if errorJWT != nil {
-	// 	log.Fatalln(errorJWT)
-	// }
-	// if debug {
-	// 	log.Printf("Short Lived JWT: \n %#v\n", jwt)
-	// }
-
-	// hardToObtainCookies, loadJWTIntoCookieError := loadJWTIntoCookie(longLivedJWT.Token)
-	// if loadJWTIntoCookieError != nil {
-	// 	log.Fatalln(loadJWTIntoCookieError)
-	// }
-	// if debug {
-	// 	log.Println("Cookies: ")
-	// 	log.Println(hardToObtainCookies)
-	// }
-
-	// name := myConfig.String("name")
-	// fmt.Print(name) // "new name"
-
-	// buf := new(bytes.Buffer)
-
-	// _, dumpError := config.DumpTo(buf, config.Yaml)
-	// if dumpError != nil {
-	// 	log.Fatalln(dumpError)
-	// }
-
-	// ioutil.WriteFile("config.yaml", buf.Bytes(), 0755)
-
-	// loadStreamData(hardToObtainCookies)
 
 	scheduleInserts(longLivedJWT.Token)
 
