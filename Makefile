@@ -14,8 +14,7 @@ clean:
 		rm -f $(OUT)
 
 docker-build: linux
-		docker build . -t enphaseLocalToInflux
-		# docker-compose up --build -d postEngineeringJobsToSlack
+		docker build . -t enphaselocal2influx
 
 docker-run: docker-build
-		docker run --rm -d --name enphaseLocalToInflux enphaseLocalToInflux
+		docker run --rm -d --name enphaselocal2influx enphaselocal2influx
