@@ -3,3 +3,4 @@ sample data/
 enphaseLocalToInflux.*
 .DS_Store
 .vscode/
+enphaselocal2influx.linux.amd64
