@@ -67,8 +67,8 @@ type Production struct {
 	Type             string  `json:"type"`
 	ActiveCount      int     `json:"activeCount"`
 	ReadingTime      int     `json:"readingTime"`
-	WNow             int     `json:"wNow"`
-	WhLifetime       int     `json:"whLifetime"`
+	WNow             float64 `json:"wNow"`
+	WhLifetime       float64 `json:"whLifetime"`
 	MeasurementType  string  `json:"measurementType,omitempty"`
 	VarhLeadLifetime float64 `json:"varhLeadLifetime,omitempty"`
 	VarhLagLifetime  float64 `json:"varhLagLifetime,omitempty"`
@@ -450,7 +450,7 @@ func authSense() string {
 	req, err := http.NewRequest(method, authURL, payload)
 
 	if err != nil {
-		log.Infoln(err)
+		splunkLogger.Infoln(err)
 		return ""
 	}
 	req.Header.Add("Sense-Client-Version", "1.17.1-20c25f9")
@@ -489,7 +489,7 @@ func writeToInfluxDB(c influxclient.Client, pointName string, tags map[string]st
 	})
 
 	if nBPError != nil {
-		log.Infoln("Error creating Batchpoints with config: ", nBPError)
+		splunkLogger.WithFields(log.Fields{"Error": "Error creating Batchpoints with config"}).Error(nBPError)
 
 	}
 
@@ -501,10 +501,11 @@ func writeToInfluxDB(c influxclient.Client, pointName string, tags map[string]st
 
 	writeErr := c.Write(bp)
 	if writeErr != nil {
-		log.Errorf("unexpected error.  expected %v, actual %v", nil, writeErr)
+		splunkLogger.WithFields(log.Fields{"Error": "Expected to see no error and didn't"}).Error(writeErr)
+
 	} else {
 		// log.Debugf("Wrote %v into InfluxDB with tags %v and value: %v at %v\n", pointName, tags, fields, t)
-		splunkLogger.WithFields(fields).WithField("point", pointName).WithField("tags", fmt.Sprint(tags)).Infof("Wrote %s into InfluxDB", pointName)
+		splunkLogger.WithFields(fields).WithField("point", pointName).WithField("fields", fmt.Sprint(fields)).WithField("tags", fmt.Sprint(tags)).Debug("Wrote point into InfluxDB")
 
 	}
 
@@ -516,7 +517,8 @@ func setupConfig() {
 	config.AddDriver(yaml.Driver)
 	err := config.LoadFiles(configFilePath)
 	if err != nil {
-		log.Fatal("Error loading config file: ", err)
+		splunkLogger.WithFields(log.Fields{"Error": "Error loading config file"}).Error(err)
+
 	}
 
 }
@@ -537,29 +539,24 @@ func getLongLivedJWT() (JWTToken, error) {
 	_, errLogin := client.PostForm("https://enlighten.enphaseenergy.com//login/login", fieldsLogin)
 
 	if errLogin != nil {
-		log.Infoln("Error loggin in to get long term JWT")
-		log.Fatalln(errLogin)
+		splunkLogger.WithField("Error", errLogin).Fatalf("Error loggin in to get long term JWT")
+
 	}
 
 	req, _ := http.NewRequest("GET", fmt.Sprintf("https://enlighten.enphaseenergy.com/entrez-auth-token?serial_num=%s", config.String("enphase.EnphaseEnvoySerial")), nil)
 	requestResponse, requestError := client.Do(req)
 	if requestError != nil {
-		log.Infoln("Error loging-in getting long term JWT for serial number" + config.String("enphase.EnphaseEnvoySerial"))
-
-		log.Infoln(requestError)
+		splunkLogger.WithFields(log.Fields{"Error": "Issue loging-in getting long term JWT", "Enphase Serial": config.String("enphase.EnphaseEnvoySerial")}).Error(requestError)
 		panic(0)
 
 	}
-	log.Debug(requestResponse)
+	splunkLogger.WithField("response", requestResponse).WithField("EnphaseSerial", config.String("enphase.EnphaseEnvoySerial")).Debugln("Response from Enphase entrez-auth-token")
 
 	defer requestResponse.Body.Close()
 
 	body, err := ioutil.ReadAll(requestResponse.Body)
 	if err != nil {
-		log.Infoln("Error reading response body:" + requestResponse.Status)
-
-		log.Infoln(err)
-		panic(0)
+		splunkLogger.WithField("Error", err).Fatalln("Error reading response body:" + requestResponse.Status)
 
 	}
 
@@ -567,12 +564,9 @@ func getLongLivedJWT() (JWTToken, error) {
 	unmarshalError := json.Unmarshal([]byte(body), &jwtToken)
 
 	if unmarshalError != nil {
-		splunkLogger.Infoln("Error unmarshalling:" + string(body))
-
-		splunkLogger.Infoln(unmarshalError)
-		panic(0)
+		splunkLogger.WithFields(log.Fields{"responseBody": string(body), "unmarshalError": unmarshalError}).Fatalln("Error unmarshalling Sense data")
 	}
-	log.Infoln("Retrieved long-lived JWT token successfully")
+	splunkLogger.Infoln("Retrieved long-lived JWT token successfully")
 	return jwtToken, nil
 
 }
@@ -595,7 +589,7 @@ func getJWT() (string, error) {
 	_, errLogin := client.PostForm("https://entrez.enphaseenergy.com/login", fieldsLogin)
 
 	if errLogin != nil {
-		log.Fatalln(errLogin)
+		splunkLogger.WithField("Error", errLogin).Fatalf("Error loggin in to Enphase")
 	}
 
 	// Second give system parameters
@@ -605,7 +599,7 @@ func getJWT() (string, error) {
 	doc, _ := htmlquery.Parse(resp2.Body)
 	textareas := htmlquery.Find(doc, "//textarea[@id=\"JWTToken\"]")
 	// The first and only textarea with the JWTToken id is the JWT
-	log.Infoln("Retrieved short-lived JWT token successfully")
+	splunkLogger.Infoln("Retrieved short-lived JWT token successfully")
 
 	return htmlquery.InnerText(textareas[0]), nil
 }
@@ -630,11 +624,10 @@ func initInfluxDB() influxclient.Client {
 	influxDBcnx, influxdbcnxerror := connectToInfluxDB()
 
 	if influxdbcnxerror != nil {
-		log.Infoln("Couldn't connect to InfluxDB")
-		log.Fatalln(influxdbcnxerror)
+		splunkLogger.WithField("Error", influxdbcnxerror).Infoln("Couldn't connect to InfluxDB")
 	}
 
-	log.Infoln("Connected successfully to influxdb")
+	splunkLogger.Infoln("Connected successfully to influxdb")
 
 	return influxDBcnx
 }
@@ -649,7 +642,7 @@ func scheduleInserts(myJWTtoken string) {
 	loadEnphaseDataAndWriteItToInfluxDB(myJWTtoken)
 
 	if senseToken == "" {
-		log.Infoln("No Sense token, not getting Sense data")
+		splunkLogger.Infoln("No Sense token, not getting Sense data")
 		return
 	}
 
@@ -674,7 +667,7 @@ func scheduleInserts(myJWTtoken string) {
 	}
 }
 func writeSenseDataToInfluxDB(senseTrendsData SenseTrends) {
-	log.Infoln("Writing Sense data to InfluxDB")
+	splunkLogger.Infoln("Writing Sense data to InfluxDB")
 	eventTime := time.Now()
 
 	tags := map[string]string{"senseMonitorID": config.String("sense.monitorID")}
@@ -705,7 +698,7 @@ func loadSenseData(senseToken string) *SenseTrends {
 	req, err := http.NewRequest(method, url, nil)
 
 	if err != nil {
-		splunkLogger.Error(err)
+		splunkLogger.WithField("Error", err).WithField("monitor_id", config.String("sense.monitorID")).WithField("URL", url).Error("Error retrieving tren sense data")
 		return nil
 	}
 	req.Header.Add("Authorization", "Bearer "+senseToken)
@@ -733,7 +726,8 @@ func loadSenseData(senseToken string) *SenseTrends {
 	unmarshalError := json.Unmarshal([]byte(body), &senseTrendsData)
 
 	if unmarshalError != nil {
-		splunkLogger.WithFields(log.Fields{"responseBody": string(body), "unmarshalError": unmarshalError}).Panic("Error unmarshalling Sense data")
+
+		splunkLogger.WithFields(log.Fields{"responseBody": string(body), "unmarshalError": unmarshalError}).Fatalln("Error unmarshalling Sense data")
 
 		// panic(0)
 	}
@@ -754,14 +748,17 @@ func loadEnphaseDataAndWriteItToInfluxDB(myJWTtoken string) {
 		tags := map[string]string{"serial": config.String("enphase.EnphaseEnvoySerial"), "type": data.Type}
 
 		fields := map[string]interface{}{
-			"whLifetime":           data.WhLifetime,
+			"whLifetime":           int(data.WhLifetime),
 			"WhLastSevenDays":      data.WhLastSevenDays,
 			"WhToday":              data.WhToday,
-			"WNow":                 data.WNow,
+			"WNow":                 int(data.WNow),
 			"activeInverterCounts": data.ActiveCount,
 		}
 
 		writeToInfluxDB(influxDBcnx, "production", tags, fields, eventTime)
+
+		// b, _ := json.Marshal(fields)
+		// fmt.Println(string(b))
 
 		splunkLogger.WithFields(fields).Infoln("Wrote Enphase Production data to InfluxDB")
 
@@ -784,18 +781,21 @@ func loadEnphaseDataAndWriteItToInfluxDB(myJWTtoken string) {
 			"WhLastSevenDays": data.WhLastSevenDays,
 			"WhToday":         data.WhToday,
 		}
-		log.Debugf("WhLifeTime: \n %#v\n", data.WhLifetime)
-		log.Debug(tags, fields)
+		splunkLogger.Debugf("WhLifeTime: \n %#v\n", data.WhLifetime)
+		// log.Debug(tags, fields)
 
 		writeToInfluxDB(influxDBcnx, "consumption", tags, fields, eventTime)
 
-		log.Infof("Today's Consumption (%s): %f", data.MeasurementType, data.WhToday)
-		log.Infof("Week's Consumption (%s): %f", data.MeasurementType, data.WhLastSevenDays)
-		log.Infof("Lifetime Consumption (%s): %f", data.MeasurementType, data.WhLifetime)
+		// log.Infof("Today's Consumption (%s): %f", data.MeasurementType, data.WhToday)
+		splunkLogger.WithFields(log.Fields{"MeasurementType": data.MeasurementType, "WhToday": data.WhToday}).Debugln("Today's Consumption")
+		// log.Infof("Week's Consumption (%s): %f", data.MeasurementType, data.WhLastSevenDays)
+		splunkLogger.WithFields(log.Fields{"MeasurementType": data.MeasurementType, "WhLastSevenDays": data.WhLastSevenDays}).Debugln("Week's Consumption")
+		// log.Infof("Lifetime Consumption (%s): %f", data.MeasurementType, data.WhLifetime)
+		splunkLogger.WithFields(log.Fields{"MeasurementType": data.MeasurementType, "WhLastSevenDays": data.WhLifetime}).Debugln("Lifetime Consumption")
 
 	}
 
-	log.Infoln("Retrieving Enphase Inverter data, from local endpoint")
+	splunkLogger.Infoln("Retrieving Enphase Inverter data, from local endpoint")
 	invertersData := loadInverterData(myJWTtoken)
 
 	totalInverters := 0
@@ -815,7 +815,7 @@ func loadEnphaseDataAndWriteItToInfluxDB(myJWTtoken string) {
 			"maxReportWatts":  data_inverter.Maxreportwatts,
 		}
 
-		splunkLogger.WithFields(fields).WithField("inverter", inverterID).WithField("tags", fmt.Sprint(tags)).Infof("Inverter info")
+		splunkLogger.WithFields(fields).WithField("inverter", inverterID).WithField("tags", fmt.Sprint(tags)).Debug("Inverter data")
 
 		writeToInfluxDB(influxDBcnx, "inverters", tags, fields, eventTime)
 		totalInverters += data_inverter.Lastreportwatts
@@ -823,14 +823,14 @@ func loadEnphaseDataAndWriteItToInfluxDB(myJWTtoken string) {
 	}
 
 	// if !debug {
-	log.Printf("Total Reported Watts for Inverters: %d", totalInverters)
+	splunkLogger.WithField("TotalReportedWatts", totalInverters).Debug("Total Reported Watts for Inverters")
 	// }
 
 }
 
 func writeConfig() error {
 
-	log.Infoln("Writing config to file")
+	splunkLogger.Infoln("Writing config to file")
 
 	buf := new(bytes.Buffer)
 
@@ -867,18 +867,19 @@ func loadJWTIntoCookie(jwt string) (cookiejar.Jar, error) {
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", jwt))
 	requestResponse, requestError := client.Do(req)
 	if requestError != nil {
-		log.Fatalln(requestError)
+		splunkLogger.Fatalln(requestError)
 	}
-	log.Debug(requestResponse)
+	splunkLogger.WithField("Response", requestResponse).Debug("Making call to auth/check_jwt")
 	// again, all error handling stripped. You'd normally check that response
 
 	// All we needed was the cookie, which is now in ep.client.Jar
-	log.Infoln("Retrieved cookies successfully from JWT auth page")
+	splunkLogger.Infoln("Retrieved cookies successfully from JWT auth page")
 
 	return *jar, nil
 }
 func loadProductionDetailsData(myJWTtoken string) enphaseMetrics {
 	// /production.json?details=1
+
 	tr := &http.Transport{
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 	}
@@ -891,7 +892,6 @@ func loadProductionDetailsData(myJWTtoken string) enphaseMetrics {
 	if requestError != nil {
 		log.Fatalln(requestError)
 	}
-	splunkLogger.WithFields(log.Fields{"Response": requestResponse}).Debug("Production details response from Enphase API")
 
 	defer requestResponse.Body.Close()
 
@@ -900,10 +900,17 @@ func loadProductionDetailsData(myJWTtoken string) enphaseMetrics {
 		splunkLogger.Fatalln(err)
 	}
 
-	res := enphaseMetrics{}
-	json.Unmarshal([]byte(body), &res)
+	splunkLogger.WithFields(log.Fields{"Response": body}).Debug("Production details response from Enphase API")
 
-	log.Infoln("Retrieved Enphase production data successfully from local endpoint")
+	res := enphaseMetrics{}
+	unMarshalError := json.Unmarshal([]byte(body), &res)
+
+	if unMarshalError != nil {
+
+		splunkLogger.WithFields(log.Fields{"responseBody": string(body), "unmarshalError": unMarshalError}).Fatalln("Error unmarshalling Sense data")
+	}
+
+	splunkLogger.Infoln("Retrieved Enphase production data successfully from local endpoint")
 
 	return res
 
@@ -933,7 +940,11 @@ func loadInverterData(myJWTtoken string) Inverters {
 	}
 
 	res := Inverters{}
-	json.Unmarshal([]byte(body), &res)
+	unmarshalError := json.Unmarshal([]byte(body), &res)
+
+	if unmarshalError != nil {
+		splunkLogger.WithFields(log.Fields{"responseBody": string(body), "unmarshalError": unmarshalError}).Fatalln("Error unmarshalling Sense data")
+	}
 
 	log.Infoln("Retrieved Enphase inverter data successfully from local endpoint")
 
@@ -985,9 +996,9 @@ func initLoggers() {
 
 	log.SetLevel(log.Level(config.Int("loglevel")))
 
-	if config.Int("loglevel") > 4 {
-		log.SetReportCaller(true)
-	}
+	// if config.Int("loglevel") > 4 {
+	log.SetReportCaller(true)
+	// }
 
 	splunkLogger = log.WithFields(log.Fields{"app": APPNAME})
 
@@ -1000,7 +1011,7 @@ func main() {
 	setupConfig()
 	initLoggers()
 
-	// splunkLogger.WithFields(log.Fields{"config": config.Data()}).Debug("Config loaded")
+	splunkLogger.WithField("config", fmt.Sprint(config.Data())).Debug("Config loaded")
 
 	splunkLogger.Debug("Config loaded")
 
@@ -1020,7 +1031,10 @@ func main() {
 		config.Set("enphase.jwtToken.ExpiresAt", longLivedJWT.ExpiresAt)
 		config.Set("enphase.jwtToken.GenerationTime", longLivedJWT.GenerationTime)
 
-		writeConfig()
+		writeConfigError := writeConfig()
+		if writeConfigError != nil {
+			splunkLogger.WithFields(log.Fields{"writeConfigError": writeConfigError}).Fatalln("Error writing config file")
+		}
 
 	} else {
 		longLivedJWT = JWTToken{token, tokenExpiry, tokenGen}
