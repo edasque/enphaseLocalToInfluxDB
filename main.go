@@ -5,6 +5,7 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"net/http/cookiejar"
@@ -554,7 +555,7 @@ func getLongLivedJWT() (JWTToken, error) {
 
 	defer requestResponse.Body.Close()
 
-	body, err := ioutil.ReadAll(requestResponse.Body)
+	body, err := io.ReadAll(requestResponse.Body)
 	if err != nil {
 		splunkLogger.WithField("Error", err).Fatalln("Error reading response body:" + requestResponse.Status)
 
@@ -564,7 +565,7 @@ func getLongLivedJWT() (JWTToken, error) {
 	unmarshalError := json.Unmarshal([]byte(body), &jwtToken)
 
 	if unmarshalError != nil {
-		splunkLogger.WithFields(log.Fields{"responseBody": string(body), "unmarshalError": unmarshalError}).Fatalln("Error unmarshalling Sense data")
+		splunkLogger.WithFields(log.Fields{"responseBody": string(body), "unmarshalError": unmarshalError}).Fatalln("Error unmarshalling Enlighten data")
 	}
 	splunkLogger.Infoln("Retrieved long-lived JWT token successfully")
 	return jwtToken, nil
@@ -651,6 +652,9 @@ func scheduleInserts(myJWTtoken string) {
 		if senseData != nil {
 			writeSenseDataToInfluxDB(*senseData)
 		}
+	} else {
+		splunkLogger.Infoln("Sense is not enabled, not getting Sense data")
+
 	}
 
 	for range ticker.C {
