@@ -1,6 +1,6 @@
 module main.go
 
-go 1.18
+go 1.23.0
 
 require (
 	github.com/antchfx/htmlquery v1.3.3
@@ -11,7 +11,7 @@ require (
 
 require (
 	dario.cat/mergo v1.0.1 // indirect
-	github.com/antchfx/xpath v1.3.2 // indirect
+	github.com/antchfx/xpath v1.3.6 // indirect
 	github.com/fatih/color v1.18.0 // indirect
 	github.com/goccy/go-yaml v1.13.0 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
